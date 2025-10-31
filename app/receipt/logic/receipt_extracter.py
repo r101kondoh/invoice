@@ -4,6 +4,7 @@ import cv2
 from logging import getLogger
 
 from utils.error_handlers import handle_errors
+from utils.file_utils import FileUtils
 my_logger = getLogger()
 
 
@@ -19,7 +20,7 @@ class ReceiptExtracter():
         self.upper_red2 = np.array([179, 255, 255])
 
     @handle_errors
-    def template_matching(self, input_path:str, template_path:str):
+    def template_matching(self, input_path:str, processed_dir:str, success_path:str, failed_path:str,  template_path:str):
         '''
         テンプレートマッチング
         '''
@@ -33,9 +34,10 @@ class ReceiptExtracter():
                 my_logger.info(f"{file_name}の処理実行中...")
                 
                 img_path = os.path.join(input_path, file_name)
+
                 my_logger.info(img_path)
-                success_path = os.path.join("./output/receipt/img/matching/success", file_name)
-                failed_path = os.path.join("./output/receipt/img/matching/failed", file_name)
+                success_file_path = os.path.join(success_path, file_name)
+                failed_file_path = os.path.join(failed_path, file_name)
 
                 # 画像ファイルの読み込み
                 img_rgb_orig = cv2.imread(img_path)
@@ -93,16 +95,18 @@ class ReceiptExtracter():
                             cropped = img_rgb[y:y+h, x:x+w]
 
                             # 保存
-                            cv2.imwrite(success_path, cropped)
+                            cv2.imwrite(success_file_path, cropped)
                             my_logger.info("✅ トリミング画像を保存しました")
+                            my_logger.info(processed_dir)
+                            FileUtils.move_dir(srt_path=f"{input_path}/{file_name}", dest_path=f"{processed_dir}/{file_name}")
 
                         else:
                             # 結果を保存
-                            cv2.imwrite(success_path, img_rgb)
+                            cv2.imwrite(success_file_path, img_rgb)
                             my_logger.info(f"🔹 マッチした画像を保存しました")
                         found = True
                         break  # マッチしたらループ終了
 
                 if not found:
                     my_logger.error("⚠ テンプレートは4方向とも検出されませんでした")
-                    cv2.imwrite(failed_path, img_rgb)
+                    cv2.imwrite(failed_file_path, img_rgb)

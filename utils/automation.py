@@ -22,7 +22,11 @@ from common.my_msgbox import MyMsgBox
 from common.my_progress import ProgressOverlay
 from utils.error_handlers import handle_errors, log_error_with_traceback, show_msgbox_on_error
 from logging import getLogger
+
+from utils.file_utils import FileUtils
 my_logger = getLogger()
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 class ChromeAutomation():
     """
@@ -36,7 +40,7 @@ class ChromeAutomation():
         self.overlay = ProgressOverlay(page=page)
         self.chrome_options = Options()
         self.chrome_options.add_argument("--window-size=1920x1080")
-        self.chrome_options.add_argument("--headless")
+        # self.chrome_options.add_argument("--headless")
         self.chrome_options.add_argument("--disable-gpu")
 
     @handle_errors
@@ -45,6 +49,16 @@ class ChromeAutomation():
         Webドライバを起動
         '''
         self.driver = webdriver.Chrome(options=self.chrome_options)
+
+    @handle_errors
+    def get_presence_elem(self, element_id) -> WebElement:
+        '''
+        指定したIDの表示されている要素を取得
+        '''
+        elem = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, element_id))
+        )
+        return elem
     
     @handle_errors
     def get_elem(self, element_id)->WebElement:
@@ -66,6 +80,36 @@ class ChromeAutomation():
         )
         return elem
     
+
+    @handle_errors
+    def get_elem_by_css(self, css_selector)->WebElement:
+        '''
+        指定したCSSセレクタの要素を取得
+        '''
+        elem = WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selector))
+        )
+        return elem
+
+    @handle_errors    
+    def get_table_from_elem(self, element_id) -> WebElement:
+        '''
+        指定したIDの要素からtableタグを抽出
+        '''
+        elem = self.get_elem(element_id)
+        table = elem.find_element(By.TAG_NAME, "table")
+        return table
+    
+    @handle_errors    
+    def get_presence_of_all_elements_located(self, css_selector:str):
+        '''
+        指定したCSSセレクタと合致する要素を取得
+        '''
+        elems = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, css_selector))
+        )
+        return elems
+    
     @handle_errors
     def input_elem(self, target_elem:WebElement, script_value:str|None=None, key_code:str|None = Keys.ENTER, ):
         '''
@@ -82,6 +126,30 @@ class ChromeAutomation():
         # 指定した値を入力
         if key_code != None:
             target_elem.send_keys(key_code)
+
+    @handle_errors
+    def upload_file(self, target_elem: WebElement, file_path: str):
+        '''
+        ファイルアップロード専用関数
+        <input type="file"> にファイルを送信する
+        '''
+        # ファイル存在チェック
+        abs_path = FileUtils.get_abspath(file_path)
+        if not FileUtils.check_file_exists(abs_path):
+            raise FileNotFoundError(f"指定されたファイルが存在しません: {abs_path}")
+
+        # 非表示状態の場合は一時的に表示させる
+        is_displayed = target_elem.is_displayed()
+        if not is_displayed:
+            self.driver.execute_script("arguments[0].style.display = 'block';", target_elem)
+
+        # ファイルパスを送信（これでアップロードが実行される）
+        target_elem.send_keys(abs_path)
+
+        # 元の状態に戻す（必要なら）
+        if not is_displayed:
+            self.driver.execute_script("arguments[0].style.display = 'none';", target_elem)
+
 
     @handle_errors
     def click_elem(self, target_elem:WebElement):

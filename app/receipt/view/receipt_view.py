@@ -15,7 +15,7 @@ class ReceiptView(ft.Column):
         self.receipt_logic = ReceiptLogic(page=page)
 
         self.controls = [
-            MyDatePicker(ref=self.receipt_logic.yearmonth_picker),
+            MyDatePicker(ref=self.receipt_logic.yearmonth_picker, upd_conponents=self.receipt_logic.fetch_images),
             ft.Row(
                 controls=[        
                     ft.FilledButton(
@@ -26,12 +26,13 @@ class ReceiptView(ft.Column):
                     ft.FilledButton(
                         "レシート画像登録",
                         icon=ft.Icons.APP_REGISTRATION,
-                        # on_click=lambda _: self.receipt_logic.extract_receipt_img()
+                        on_click=lambda _: self.receipt_logic.scraper.execute_automation(year=self.receipt_logic.yearmonth_picker.current.year, month=self.receipt_logic.yearmonth_picker.current.month)
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
-            ft.Row(expand=1, wrap=False, scroll=ft.ScrollMode.ALWAYS, ref=self.receipt_logic.row_images)
+            ft.Row(expand=1, wrap=False, scroll=ft.ScrollMode.ALWAYS, ref=self.receipt_logic.row_images),
+            ft.Text("ファイル名は、「日付_客数_金額.png」の形式で名前変更してください")
         ]
 
     def did_mount(self):

@@ -1,26 +1,25 @@
 import os
 import fitz
 from logging import getLogger
+
+from utils.file_utils import FileUtils
 my_logger = getLogger()
 
 class PDFConverter:
     """
     PDFを画像変換するクラス
     """
-    def __init__(self, pdf_path: str):
-        self.pdf_path = pdf_path
-        self.output_path = "./output/receipt/img/scan"
         
-    def convert(self):
+    def convert(self, input_path:str, output_path:str, processed_dir:str):
         '''
         PDFの画像変換処理
         '''
         try:
-            for file_name in os.listdir(self.pdf_path):
+            for file_name in os.listdir(input_path):
                 if file_name.endswith('.pdf'):
                     (f"{file_name}の処理実行中...")
                     # pdfファイルの読み込み
-                    pdf_document = fitz.open(os.path.join(self.pdf_path, file_name))
+                    pdf_document = fitz.open(os.path.join(input_path, file_name))
             
                     # 各ページをJPEGに変換
                     for page_num in range(len(pdf_document)):
@@ -28,9 +27,11 @@ class PDFConverter:
                         pix = page.get_pixmap(matrix=fitz.Matrix(2,2))  # 画像ピクセルを取得
                         
                         # 出力するJPEGのパスを設定
-                        # file_name = os.path.basename(self.pdf_path)
-                        output_image_path = os.path.join(self.output_path, f'{file_name[:-4]}_page{page_num + 1}.png')
-                
+                        # file_name = os.path.basename(input_path)
+                        output_image_path = os.path.join(output_path, f'{file_name[:-4]}_page{page_num + 1}.png')
+
+                        if FileUtils.check_file_exists(f"{processed_dir}/{f'{file_name[:-4]}_page{page_num + 1}.png'}"):
+                            continue
                         # 画像を保存
                         pix.save(output_image_path)
                         

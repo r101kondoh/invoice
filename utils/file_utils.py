@@ -70,6 +70,7 @@ class FileUtils():
         '''
         指定したディレクトリー間のファイルコピー処理
         '''
+        # dest_file_path = 
         for file_name in os.listdir(src):
             if file_name.endswith('.pdf'):
                 src_file_path = os.path.join(src, file_name)
@@ -78,7 +79,7 @@ class FileUtils():
                 if not os.path.exists(dest_file_path):
                     shutil.copy2(src_file_path, dest_file_path)
 
-
+    @handle_errors
     def remove_duplicate_files(target_dir: str, processed_dir: str):
         """
         処理済みフォルダに同名ファイルが存在する場合、
@@ -107,6 +108,14 @@ class FileUtils():
             file_path = os.path.join(dir, file_name)
             if os.path.isfile(file_path):
                 os.unlink(file_path)
+
+    @handle_errors
+    def del_file(file_path:str):
+        '''
+        指定したファイルを削除
+        '''
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
     
     @handle_errors
     def get_invoice_templaet_excel_path():
@@ -135,6 +144,13 @@ class FileUtils():
         工場請求書明細書テンプレートのパスを取得
         '''
         return "./assets/templates/きょくとう 春糸事業所テンプレート.xlsx"
+    
+    @handle_errors
+    def get_abspath(file_path:str):
+        '''
+        指定したパスの絶対パスを取得
+        '''
+        return os.path.abspath(file_path)
     
     # @handle_errors
     # def get_staff_dir(staff:Staff, branch:Branch|None=None):
