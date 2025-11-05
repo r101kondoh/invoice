@@ -32,7 +32,7 @@ class ReceiptView(ft.Column):
                 alignment=ft.MainAxisAlignment.CENTER
             ),
             ft.Row(expand=1, wrap=False, scroll=ft.ScrollMode.ALWAYS, ref=self.receipt_logic.row_images),
-            ft.Text("ファイル名は、「日付_客数_金額.png」の形式で名前変更してください")
+            ft.Text("ファイル名は、「日付_客数_金額(税抜計).png」の形式で名前変更してください")
         ]
 
     def did_mount(self):
