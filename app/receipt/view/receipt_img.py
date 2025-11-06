@@ -2,6 +2,7 @@ from typing import Callable
 import flet as ft
 from logging import getLogger
 
+from common.my_snackbar import MySnackBar
 from utils.error_handlers import handle_errors
 from utils.file_utils import FileUtils
 my_logger = getLogger()
@@ -45,30 +46,42 @@ class ReceiptImage(ft.Column):
     def edit(self):
         '''
         編集
-        '''            
-        self.lbl_file_name.current.visible = not self.lbl_file_name.current.visible
-        self.txt_file_name.current.visible = not self.txt_file_name.current.visible
-        self.btn_delete.current.disabled = not self.btn_delete.current.disabled
-        if not self.txt_file_name.current.visible:
-            new_file_name = f"{self.txt_file_name.current.value}{self.txt_file_name.current.suffix_text}"
-            new_path = self.path.replace(self.lbl_file_name.current.value, new_file_name)
-            FileUtils.rename(self.path, new_path)
-            self.lbl_file_name.current.value = new_file_name
-            self.path = new_path
-            self.img.current.src = new_path
-            self.img.current.update()
+        ''' 
+        try:           
+            self.lbl_file_name.current.visible = not self.lbl_file_name.current.visible
+            self.txt_file_name.current.visible = not self.txt_file_name.current.visible
+            self.btn_delete.current.disabled = not self.btn_delete.current.disabled
+            if not self.txt_file_name.current.visible:
+                new_file_name = f"{self.txt_file_name.current.value}{self.txt_file_name.current.suffix_text}"
+                new_path = self.path.replace(self.lbl_file_name.current.value, new_file_name)
+                FileUtils.rename(self.path, new_path)
+                self.lbl_file_name.current.value = new_file_name
+                self.path = new_path
+                self.img.current.src = new_path
+                self.img.current.update()
+                self.page.open(
+                    MySnackBar(msg="画像データの名前更新を完了しました")
+                )
 
-        self.lbl_file_name.current.update()
-        self.txt_file_name.current.update()
-        self.btn_delete.current.update()
-
-        for img in self.row_images.current.controls:
-            img: "ReceiptImage"
-            if img.idx != self.idx:
-                img.btn_edit.current.disabled = not self.lbl_file_name.current.visible
-                img.btn_edit.current.update()
-                img.btn_delete.current.disabled = not img.btn_delete.current.disabled
-                img.btn_delete.current.update()
+        except Exception as err:
+            my_logger.info(err)
+            self.page.open(
+                MySnackBar(msg="画像データの名前更新に失敗しました", is_err=True)
+            )
+            self.txt_file_name.current.value = self.lbl_file_name.current.value.replace(".png", "")
+            raise err
+        finally:
+            self.lbl_file_name.current.update()
+            self.txt_file_name.current.update()
+            self.btn_delete.current.update()
+            
+            for img in self.row_images.current.controls:
+                img: "ReceiptImage"
+                if img.idx != self.idx:
+                    img.btn_edit.current.disabled = not self.lbl_file_name.current.visible
+                    img.btn_edit.current.update()
+                    img.btn_delete.current.disabled = not img.btn_delete.current.disabled
+                    img.btn_delete.current.update()
 
     @handle_errors
     def delete(self):
