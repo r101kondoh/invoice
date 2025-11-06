@@ -85,6 +85,11 @@ class SalesDataEditScraper(ChromeAutomation):
         
         for day in range(1, end_day+1):
 
+            # 現在の日付が今日の日付
+            if not DateUtils.is_today_expired_target_date(year, month, day):
+                break
+
+
             # 日付と合致する売上・来客数データを取得
             day_quantity_amount = next((x for x in day_quantity_amount_list if x[0] == f"{day:02}"), None)
 
