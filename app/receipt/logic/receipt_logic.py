@@ -115,3 +115,27 @@ class ReceiptLogic():
         finally:
             self.fetch_images()
             self.overlay.dismiss_progress()
+
+    @handle_errors
+    def move_processed_to_pending(self):
+        '''
+        処理済みフォルダの画像データを未処理フォルダに移動
+        '''
+        try:
+            self.overlay.message_reciever().send("スキャン画像データ移動中...")
+            files = FileUtils.get_files(self.processed_scan_dir, ".png")
+            for file in files:
+                file_name = file.split("\\")[1]
+                srt = f"{self.processed_scan_dir}/{file_name}"
+                dest = f"{self.pending_scan_dir}/{file_name}"
+                my_logger.info(f"移動元:{srt}")
+                my_logger.info(f"移動先:{dest}")
+                FileUtils.move_dir(srt, dest)
+            self.overlay.message_reciever().send("スキャン画像データ移動完了")
+            MyMsgBox.show_msgbox(title=f"出力完了", msg=f"スキャン画像の移動を完了しました。")
+        except Exception as err:
+            MyMsgBox.show_errmsgbox(title=f"移動失敗", msg=f"スキャン画像の移動に失敗しました。")
+            raise err
+        finally:
+            self.fetch_images()
+            self.overlay.dismiss_progress()

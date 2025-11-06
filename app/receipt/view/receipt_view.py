@@ -28,6 +28,11 @@ class ReceiptView(ft.Column):
                         icon=ft.Icons.APP_REGISTRATION,
                         on_click=lambda _: self.receipt_logic.scraper.execute_automation(year=self.receipt_logic.yearmonth_picker.current.year, month=self.receipt_logic.yearmonth_picker.current.month)
                     ),
+                    ft.FilledButton(
+                        "スキャンデータ移動",
+                        icon=ft.Icons.SCANNER,
+                        on_click= lambda _ : self.receipt_logic.move_processed_to_pending()
+                    )
                 ],
                 alignment=ft.MainAxisAlignment.CENTER
             ),
